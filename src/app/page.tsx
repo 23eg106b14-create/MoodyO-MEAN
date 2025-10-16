@@ -22,8 +22,6 @@ import { generateMood, GenerateMoodInput, GenerateMoodOutput } from '@/ai/flows/
 import { generateImage } from '@/ai/flows/image-generator';
 import { ThemeProvider } from '@/components/theme-provider';
 
-export const dynamic = 'force-dynamic';
-
 // --- Data Definitions ---
 type MoodDefinition = {
   title: string;
@@ -79,6 +77,28 @@ type Track = {
 };
 
 
+// Function to fetch songs from backend
+const fetchSongs = async (emotion: string): Promise<Track[]> => {
+  try {
+    const response = await fetch(`/api/songs/${emotion}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch songs for ${emotion}`);
+    }
+    const songs = await response.json();
+    return songs.map((song: any) => ({
+      title: song.title,
+      artist: song.artist,
+      src: song.src,
+      cover: song.cover,
+      mood: emotion
+    }));
+  } catch (error) {
+    console.error(`Error fetching songs for ${emotion}:`, error);
+    // Fallback to sample tracks if backend fails
+    return SAMPLE_TRACKS(emotion === 'happy' ? 0 : emotion === 'joyful' ? 4 : emotion === 'sad' ? 8 : 12);
+  }
+};
+
 const SAMPLE_TRACKS = (baseIdx = 1): Track[] => Array.from({ length: 10 }, (_, i) => ({
   title: ['Sunny Days', 'Golden Hour', 'Sparkle', 'Warm Breeze', 'Lemonade', 'Candy Skies', 'Bloom', 'Brightside', 'Hummingbird', 'Radiant'][i],
   artist: ['MoodyO Mix', 'Acoustic', 'Indie Pop', 'Lo-Fi', 'Electro Pop', 'Indie', 'Bedroom Pop', 'Folk', 'Chillhop', 'Dance'][i],
@@ -116,7 +136,7 @@ export default function Home() {
   const [isCustomMoodDialogOpen, setIsCustomMoodDialogOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [customMoods, setCustomMoods] = useState<Record<string, MoodDefinition>>({});
-  const [tracks, setTracks] = useState<Record<string, Track[]>>(STATIC_TRACKS);
+  const [tracks, setTracks] = useState<Record<string, Track[] | undefined>>({});
   const [customMoodFormData, setCustomMoodFormData] = useState({ name: '', emoji: '', description: '' });
 
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -142,8 +162,9 @@ export default function Home() {
     const heroContent = heroSection.querySelector('.hero-content');
     if (!heroContent) return;
 
-    const onMouseMove = (e: MouseEvent) => {
-      const { clientX, clientY } = e;
+    const onMouseMove = (e: Event) => {
+      const mouseEvent = e as MouseEvent;
+      const { clientX, clientY } = mouseEvent;
       const x = (clientX / window.innerWidth - 0.5) * 2;
       const y = (clientY / window.innerHeight - 0.5) * 2;
 
@@ -153,9 +174,9 @@ export default function Home() {
         ease: 'power1.out',
       });
     };
-    
+
     heroSection.addEventListener('mousemove', onMouseMove);
-    
+
     return () => {
       heroSection.removeEventListener('mousemove', onMouseMove)
     };
@@ -214,10 +235,11 @@ export default function Home() {
     const cards = document.querySelectorAll('.how-it-works-step');
     cards.forEach(card => {
         const htmlCard = card as HTMLElement;
-        const onMouseMove = (e: MouseEvent) => {
+        const onMouseMove = (e: Event) => {
+            const mouseEvent = e as MouseEvent;
             const rect = htmlCard.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            const x = mouseEvent.clientX - rect.left;
+            const y = mouseEvent.clientY - rect.top;
             htmlCard.style.setProperty('--x', `${x}px`);
             htmlCard.style.setProperty('--y', `${y}px`);
         };
@@ -232,7 +254,7 @@ export default function Home() {
   // Mood Page Animation
   useEffect(() => {
     if (!isMounted) return;
-    let animation: gsap.core.Tween;
+    let animation: gsap.core.Tween | undefined;
     if (activePage && activePage !== 'home') {
       const page = document.getElementById(activePage);
       if (page) {
@@ -248,7 +270,11 @@ export default function Home() {
         );
       }
     }
-    return () => animation?.kill();
+    return () => {
+      if (animation) {
+        animation.kill();
+      }
+    };
   }, [activePage, isMounted]);
 
   // Custom Cursor Animation
@@ -273,6 +299,18 @@ export default function Home() {
       window.removeEventListener('mousemove', onMouseMove);
     };
   }, [isMounted]);
+
+  // Load tracks for active mood
+  useEffect(() => {
+    if (activePage && activePage !== 'home' && !tracks[activePage]) {
+      fetchSongs(activePage).then(fetchedTracks => {
+        setTracks(prev => ({
+          ...prev,
+          [activePage]: fetchedTracks
+        }));
+      });
+    }
+  }, [activePage, tracks]);
 
   // Stop music when navigating away from a mood page
   useEffect(() => {
@@ -309,6 +347,7 @@ export default function Home() {
     if (!nowPlaying) return;
     const { mood, index } = nowPlaying;
     const playlist = tracks[mood as keyof typeof tracks];
+    if (!playlist) return;
     const nextIndex = (index + 1) % playlist.length;
     setNowPlaying({ mood, index: nextIndex });
     setIsPlaying(true);
@@ -318,6 +357,7 @@ export default function Home() {
     if (!nowPlaying) return;
     const { mood, index } = nowPlaying;
     const playlist = tracks[mood as keyof typeof tracks];
+    if (!playlist) return;
     const prevIndex = (index - 1 + playlist.length) % playlist.length;
     setNowPlaying({ mood, index: prevIndex });
     setIsPlaying(true);
@@ -325,6 +365,7 @@ export default function Home() {
   
   const openPlayer = (mood: string, index: number) => {
     const playlist = tracks[mood as keyof typeof tracks];
+    if (!playlist) return;
     setNowPlaying({ mood, index: index % playlist.length });
     setIsPlaying(true);
   };
@@ -336,7 +377,7 @@ export default function Home() {
 
   const isLiked = (track: Track) => {
     return likedSongs.some(likedTrack => likedTrack.src === track.src);
-  }
+  };
 
   const handleLike = (e: React.MouseEvent, track: Track) => {
     e.stopPropagation();
@@ -351,7 +392,7 @@ export default function Home() {
         return [...prev, trackWithContext];
       }
     });
-  }
+  };
 
  const openPage = (id: string) => {
     setActivePage(id);
@@ -448,7 +489,7 @@ export default function Home() {
     }
   };
 
-  const currentTrack = nowPlaying ? tracks[nowPlaying.mood as keyof typeof tracks][nowPlaying.index] : null;
+  const currentTrack = nowPlaying ? tracks[nowPlaying.mood as keyof typeof tracks]?.[nowPlaying.index] : null;
   const allMoods = { ...MOOD_DEFS, ...customMoods };
   const isFormValid = customMoodFormData.name && customMoodFormData.emoji && customMoodFormData.description;
 
@@ -495,10 +536,10 @@ export default function Home() {
   
   return (
     <>
-      <ThemeProvider 
-        activePage={activePage} 
+      <ThemeProvider
+        activePage={activePage}
         customMoods={customMoods}
-        tracks={tracks}
+        tracks={tracks as Record<string, Track[]>}
         nowPlaying={nowPlaying}
         allMoods={allMoods}
       />
@@ -540,6 +581,9 @@ export default function Home() {
                             {allMoods[mood].title.split('—')[0]}
                           </a>
                         ))}
+                        <a href="/admin" target="_blank" className="text-purple-400 hover:text-purple-300 mt-2">
+                          Admin Panel
+                        </a>
                       </div>
                        <div className="p-4 border-t border-glass-border">
                          <NavMenu />
@@ -608,7 +652,7 @@ export default function Home() {
             </section>
 
             {Object.entries(allMoods).map(([mood, def]) => {
-              const playlist = tracks[mood];
+              const playlist = tracks[mood] || [];
               const trackPlaying = nowPlaying?.mood === mood ? currentTrack : null;
               const displayTrack = trackPlaying || playlist?.[0];
 
@@ -759,5 +803,3 @@ export default function Home() {
     </>
   );
 }
-
-    
