@@ -147,8 +147,12 @@ app.delete('/api/admin/songs/:id', async (req, res) => {
 });
 
 // Serve index.html for all non-API routes (SPA fallback)
-app.get('/*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+app.use((req, res, next) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+  } else {
+    next(); // Let it fall through to 404 if it's an API route
+  }
 });
 
 app.listen(port, () => {
