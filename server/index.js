@@ -11,7 +11,7 @@ app.use(express.json());
 app.use(cors());
 
 // Serve static files from the React app build directory
-app.use(express.static(path.join(__dirname, '../client/dist')));
+app.use(express.static(path.join(__dirname, '../client/dist/browser')));
 
 // MongoDB connection
 const mongoURI = process.env.MONGODB_URI || process.env.DATABASE_URL || 'mongodb+srv://EeshanRohith:Rohith%40123@cluster0.mh1d1hz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
@@ -150,7 +150,7 @@ app.use((req, res, next) => {
   }
 
   // Serve index.html for all client-side routes
-  res.sendFile(path.join(__dirname, '../client/dist/index.html'), (err) => {
+  res.sendFile(path.join(__dirname, '../client/dist/browser/index.html'), (err) => {
     if (err) {
       console.error('Error serving index.html:', err);
       res.status(500).send('Server error');
