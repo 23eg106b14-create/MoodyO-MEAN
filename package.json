@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "cd client && npm ci && npx ng build --configuration production",
+    "build": "cd client && npm install && npm run build --configuration=production",
     "start": "cd server && npm ci && npm start"
   },
   "engines": {
