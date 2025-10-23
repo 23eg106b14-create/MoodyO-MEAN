@@ -20,11 +20,7 @@ mongoose.connect(mongoURI)
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// Routes
-app.get('/', (req, res) => {
-  res.send('Hello from the server!');
-});
-
+// API Routes
 // Get songs by emotion
 app.get('/api/songs/:emotion', async (req, res) => {
   try {
@@ -146,9 +142,20 @@ app.delete('/api/admin/songs/:id', async (req, res) => {
   }
 });
 
-// Catch-all handler: return index.html for client-side routing
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+// SPA Fallback: Handle all non-API routes with Angular app
+app.use((req, res, next) => {
+  // Skip if it's an API request or static file
+  if (req.path.startsWith('/api') || req.path.startsWith('/favicon.ico')) {
+    return next();
+  }
+
+  // Serve index.html for all client-side routes
+  res.sendFile(path.join(__dirname, '../client/dist/index.html'), (err) => {
+    if (err) {
+      console.error('Error serving index.html:', err);
+      res.status(500).send('Server error');
+    }
+  });
 });
 
 app.listen(port, () => {
