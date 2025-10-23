@@ -1,6 +1,6 @@
 # 🎵 MoodyO - Mood-Based Audio Player
 
-A beautiful, interactive mood-based music player with admin panel and MongoDB integration.
+A beautiful, interactive mood-based music player with admin panel and MongoDB integration, now built with MEAN stack (MongoDB, Express.js, Angular, Node.js).
 
 ## 🚀 How to Run This Project
 
@@ -8,19 +8,22 @@ A beautiful, interactive mood-based music player with admin panel and MongoDB in
 - **Node.js** (version 18 or higher)
 - **MongoDB Atlas** account (free tier available)
 - **npm** or **yarn** package manager
+- **Angular CLI** installed globally (`npm install -g @angular/cli`)
 
 ### Quick Start
 
 1. **Clone and Install Dependencies:**
    ```bash
    git clone <your-repo-url>
-   cd moodyo
-   npm install
+   cd moodyo-mean
+   # Install server dependencies
    cd server && npm install && cd ..
+   # Install client dependencies
+   cd client && npm install && cd ..
    ```
 
-2. **Set up Environment (.env.local):**
-   Create `.env.local` file in the root directory:
+2. **Set up Environment:**
+   Create `.env` file in the server directory (or set environment variables):
    ```
    MONGODB_URI=mongodb+srv://EeshanRohith:Rohith%40123@cluster0.mh1d1hz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
    ```
@@ -32,17 +35,17 @@ A beautiful, interactive mood-based music player with admin panel and MongoDB in
 
 4. **Start the Servers:**
    ```bash
-   # Terminal 1 - Next.js Frontend (port 9002)
-   npm run dev
-
-   # Terminal 2 - Express Backend (port 3000)
+   # Terminal 1 - Express Backend (port 3000)
    cd server && npm start
+
+   # Terminal 2 - Angular Frontend (port 4200)
+   cd client && ng serve
    ```
 
 ### 🎯 Access URLs
 
-- **Main Website:** http://localhost:9002
-- **Admin Panel:** http://localhost:9002/admin
+- **Main Website:** http://localhost:4200
+- **Admin Panel:** http://localhost:4200/admin
 - **API Server:** http://localhost:3000
 
 ## 📊 Features

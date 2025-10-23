@@ -3,11 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack --port 9002 --hostname 0.0.0.0",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "start-server": "cd server && npm start",
+    "start-client": "cd client && ng serve --open",
+    "start": "npm run start-server & sleep 2 && npm run start-client"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.0.3",
