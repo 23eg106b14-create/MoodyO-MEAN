@@ -1,13 +1,17 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 const Song = require('./models/Song');
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
 app.use(cors());
+
+// Serve static files from the React app build directory
+app.use(express.static(path.join(__dirname, '../client/dist')));
 
 // MongoDB connection
 const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://EeshanRohith:Rohith%40123@cluster0.mh1d1hz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
@@ -140,6 +144,11 @@ app.delete('/api/admin/songs/:id', async (req, res) => {
     console.error('Error deleting song:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+// Serve index.html for all non-API routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
 
 app.listen(port, () => {
