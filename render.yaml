@@ -2,8 +2,9 @@ services:
   - type: web
     name: moodyo-mean
     env: node
-    buildCommand: npm run build
+    buildCommand: npm install && npm run build
     startCommand: npm run start
+    publishDir: client/dist
     envVars:
       - key: MONGODB_URI
         value: mongodb+srv://EeshanRohith:Rohith%40123@cluster0.mh1d1hz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
