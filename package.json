@@ -7,8 +7,8 @@
     "start": "cd server && npm ci && npm start"
   },
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
+    "node": "22.16.0",
+    "npm": "10.x"
   },
   "description": "Mood-based music player with MEAN stack"
 }
