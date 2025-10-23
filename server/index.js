@@ -14,7 +14,7 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
 // MongoDB connection
-const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://EeshanRohith:Rohith%40123@cluster0.mh1d1hz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+const mongoURI = process.env.MONGODB_URI || process.env.DATABASE_URL || 'mongodb+srv://EeshanRohith:Rohith%40123@cluster0.mh1d1hz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 
 mongoose.connect(mongoURI)
   .then(() => console.log('Connected to MongoDB'))
