@@ -10,5 +10,10 @@
     "node": "22.16.0",
     "npm": "10.x"
   },
-  "description": "Mood-based music player with MEAN stack"
+  "description": "Mood-based music player with MEAN stack",
+  "dependencies": {
+    "next": "^16.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  }
 }
